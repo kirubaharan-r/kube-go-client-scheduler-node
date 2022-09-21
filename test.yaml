@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  internal-kubectl
+  namespace: kube-system
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: internal-kubectl-role
+  namespace: kube-system
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods","nodes","services","*"]
+  verbs: ["get", "watch", "list","delete","taint","*"]
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: internal-kubectl-rolebinding
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: internal-kubectl # Name is case sensitive
+roleRef:
+  kind: Role
+  name: internal-kubectl-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: internal-kubectl
+  namespace: kube-system
+spec:
+  serviceAccountName: internal-kubectl
+  containers:
+    - name: internal-kubectl
+      image: kiru1eks/test:sch #kiru1eks/dule:test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myjob
+  namespace: kube-system
+  labels:
+    app: myjob
+spec:
+  selector:
+    matchLabels:
+      app: myjob
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myjob
+    spec:
+      containers:
+      - name: myjob
+        image: ubuntu:latest
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: internal-clusterrole
+  namespace: kube-system
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["apps"] # "" indicates the core API group
+  resources: ["*"]
+  verbs: ["*"]
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: clusterrolebinding
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: internal-kubectl
+  namespace: kube-system # Name is case sensitive
+roleRef:
+  kind: ClusterRole
+  name: internal-clusterrole
+  apiGroup: rbac.authorization.k8s.io
