@@ -28,7 +28,7 @@ func main() {
 	config, err := rest.InClusterConfig()
 
 	if err != nil {
-		fmt.Println(os.Getenv("GOOS"))
+		//fmt.Println(os.Getenv("GOOS"))
 		panic(err.Error())
 	}
 
@@ -53,26 +53,20 @@ func main() {
 		exr, _ := exec.LookPath("/usr/local/bin/")
 
 		if b <= c {
-			fmt.Println(tes.Name, "-", a, "-", "schdeuled pod")
+			fmt.Println("schdeuleing pod")
 			schdeuler := exec.Command(exr, "kubectl", "taint", "node", "-l", os.Args[1], os.Args[1]+":NoSchedule-")
-			stdout, z := schdeuler.StdoutPipe()
+			stdout, _ := schdeuler.StdoutPipe()
 			schdeuler.Run()
-			fmt.Println(schdeuler, stdout, z)
+			fmt.Println(schdeuler, stdout)
 
 		} else {
-			fmt.Println(tes.Name, "-", a, "-", "unschdeuled pod")
+			fmt.Println("unschdeuleing pod")
 			schdeuler := exec.Command(exr, "kubectl", "taint", "node", "-l", os.Args[1], os.Args[1]+":NoSchedule")
-			stdout, z := schdeuler.StdoutPipe()
+			stdout, _ := schdeuler.StdoutPipe()
 			schdeuler.Run()
-			fmt.Println(schdeuler, stdout, z)
+			fmt.Println(schdeuler, stdout)
 		}
 		break
-
-		//b := "running"
-
-		// if a == b {
-		// 	fmt.Print("pod unschedulable")
-		// }
 
 	}
 
